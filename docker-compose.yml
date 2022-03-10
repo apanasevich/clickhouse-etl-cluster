@@ -1,0 +1,71 @@
+version: '3.5'
+
+services:
+
+  ch-cluster-0-0:
+    container_name: ch-cluster-0-0
+    hostname: ch-cluster-0-0
+    image: yandex/clickhouse-server:22.1
+    restart: always
+    volumes:
+      - ./configuration/ch-cluster-0-0/config.d/config.xml:/etc/clickhouse-server/config.d/config.xml
+      - ./configuration/ch-cluster-0-0/config.d/macros.xml:/etc/clickhouse-server/config.d/macros.xml
+      - ./configuration/ch-cluster-0-0/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
+      - ./data/clickhouse-data/ch-cluster-0-0:/var/lib/clickhouse
+      - ./data/clickhouse-data/ch-cluster-0-0/log:/var/log/clickhouse-server/
+    ports:
+      - "9011:9000"
+      - "8122:8123"
+    depends_on:
+      - kafka
+
+  ch-cluster-0-1:
+    container_name: ch-cluster-0-1
+    hostname: ch-cluster-0-1
+    image: yandex/clickhouse-server:22.1
+    restart: on-failure
+    volumes:
+      - ./configuration/ch-cluster-0-1/config.d/config.xml:/etc/clickhouse-server/config.d/local.xml
+      - ./configuration/ch-cluster-0-1/config.d/macros.xml:/etc/clickhouse-server/config.d/macros.xml
+      - ./configuration/ch-cluster-0-1/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
+      - ./data/clickhouse-data/ch-cluster-0-1:/var/lib/clickhouse
+      - ./data/clickhouse-data/ch-cluster-0-1/log:/var/log/clickhouse-server/
+    ports:
+      - "9012:9000"
+      - "8123:8123"
+    depends_on:
+      - kafka
+
+  ch-zookeeper:
+    image: confluentinc/cp-zookeeper:5.2.5
+    hostname: zookeeper
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - ./data/zookeeper-data:/var/lib/zookeeper/data
+
+  kafka:
+    image: confluentinc/cp-kafka
+    hostname: kafka
+    ports:
+      - '9092:9092'
+    depends_on:
+      - ch-zookeeper
+    volumes:
+      - ./data/kafka-data:/var/lib/kafka/data
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Option advertised.listeners {name://host:port} used so someone can access kafka outside of container\cluster.
+      # 'kafka:29092' used by clickhouse-server inside docker-compose network, when 'localhost:9092' is used by containers inside network.
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_NUM_PARTITIONS: 15
+
+
+
