@@ -11,7 +11,6 @@ services:
       - ./configuration/ch-cluster-0-0/config.d/config.xml:/etc/clickhouse-server/config.d/config.xml
       - ./configuration/ch-cluster-0-0/config.d/macros.xml:/etc/clickhouse-server/config.d/macros.xml
       - ./configuration/ch-cluster-0-0/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
-      - ./data/clickhouse-data/ch-cluster-0-0:/var/lib/clickhouse
       - ./data/clickhouse-data/ch-cluster-0-0/log:/var/log/clickhouse-server/
     ports:
       - "9011:9000"
@@ -28,7 +27,6 @@ services:
       - ./configuration/ch-cluster-0-1/config.d/config.xml:/etc/clickhouse-server/config.d/local.xml
       - ./configuration/ch-cluster-0-1/config.d/macros.xml:/etc/clickhouse-server/config.d/macros.xml
       - ./configuration/ch-cluster-0-1/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
-      - ./data/clickhouse-data/ch-cluster-0-1:/var/lib/clickhouse
       - ./data/clickhouse-data/ch-cluster-0-1/log:/var/log/clickhouse-server/
     ports:
       - "9012:9000"
